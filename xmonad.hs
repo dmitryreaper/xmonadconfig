@@ -1,12 +1,3 @@
---
--- Dino's xmonad config file.
---
--- A template showing all available configuration hooks,
--- and how to override the defaults in your own xmonad.hs conf file.
---
--- Normally, you'd only override those defaults you care about.
---
-
 -- Conventional imports
 import qualified Data.Map as M
 import System.Exit ( exitSuccess )
@@ -14,9 +5,11 @@ import XMonad
 import qualified XMonad.StackSet as W
 
 -- Added by Dino
-import Graphics.X11.Types ( noModMask )
+import Graphics.X11.Types
 import Graphics.X11.ExtraTypes.XF86
-   ( xF86XK_MonBrightnessDown, xF86XK_MonBrightnessUp )
+
+import XMonad.Layout.BinarySpacePartition 
+
 import XMonad.Hooks.DynamicLog ( PP (ppLayout, ppSort, ppTitle
    , ppTitleSanitize, ppVisible), statusBar, wrap )
 import XMonad.Hooks.EwmhDesktops ( ewmhFullscreen )
@@ -34,7 +27,6 @@ import XMonad.Prompt ( XPPosition (Top), alwaysHighlight, font
 import XMonad.Prompt.ConfirmPrompt ( confirmPrompt )
 import XMonad.Prompt.Shell ( shellPrompt )
 import XMonad.Util.WorkspaceCompare ( getSortByXineramaRule )
-
 
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
@@ -86,7 +78,7 @@ myXPConfig = def
   { position          = Top
   , alwaysHighlight   = True
   , promptBorderWidth = 0
-  , font              = "xft:DejaVuSansMono:size=9"
+  , font              = "xft:DejaVuSansMono:size=13"
   }
 
 ------------------------------------------------------------------------
@@ -95,23 +87,23 @@ myXPConfig = def
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf)
-
+    [ ((modm,                xK_Return), spawn $ XMonad.terminal conf)
+    
     -- launch dmenu
-    --, ((modm,               xK_p     ), spawn "dmenu_run")
+    -- , ((modm .|. shiftMask,    xK_p     ), spawn "dmenu_run")
 
     -- launch gmrun
     -- 2021-03-31 Don't have gmrun installed at this time
     -- , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
 
     -- close focused window
-    , ((modm .|. shiftMask, xK_c     ), kill)
+    , ((modm .|. controlMask,  xK_c ), kill)
 
-     -- Rotate through the available layout algorithms
+     -- Rotate throughp the available layout algorithms
     , ((modm,               xK_space ), sendMessage NextLayout)
 
     --  Reset the layouts on the current workspace to default
-    , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
+    , ((modm .|. controlMask, xK_space ), setLayout $ XMonad.layoutHook conf)
 
     -- Resize viewed windows to the correct size
     -- 2021-03-31 This doesn't seem to do anything, commenting it out
@@ -121,7 +113,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_Tab   ), windows W.focusDown)
 
     -- Move focus to the previous window
-    , ((modm .|. shiftMask, xK_Tab   ), windows W.focusUp)
+    , ((modm .|. controlMask, xK_Tab   ), windows W.focusUp)
 
     -- Move focus to the next window
     , ((modm,               xK_j     ), windows W.focusDown)
@@ -133,13 +125,13 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm,               xK_m     ), windows W.focusMaster  )
 
     -- Swap the focused window and the master window
-    , ((modm,               xK_Return), windows W.swapMaster)
+    , ((modm,               xK_f), windows W.swapMaster)
 
     -- Swap the focused window with the next window
-    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
+    , ((modm .|. controlMask, xK_j     ), windows W.swapDown  )
 
     -- Swap the focused window with the previous window
-    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
+    , ((modm .|. controlMask, xK_k     ), windows W.swapUp    )
 
     -- Shrink the master area
     , ((modm,               xK_h     ), sendMessage Shrink)
@@ -169,28 +161,31 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
 
     -- Run xmessage with a summary of the default keybindings (useful for beginners)
-    , ((modm .|. shiftMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
-
+    , ((modm .|. controlMask, xK_slash ), spawn ("echo \"" ++ help ++ "\" | xmessage -file -"))
 
     -- Added by Dino
 
     -- Quit xmonad
-    , ((modm .|. shiftMask, xK_q     ), confirmPrompt myXPConfig "exit" (io exitSuccess))
+    , ((modm .|. controlMask, xK_q     ), confirmPrompt myXPConfig "exit" (io exitSuccess))
 
     -- launch xscreensaver-command -lock
-    , ((modm .|. shiftMask, xK_l     ), spawn "xscreensaver-command -lock")
+    , ((modm .|. controlMask, xK_l     ), spawn "xscreensaver-command -lock")
 
     -- launch xscreensaver-command -lock AND power the monitor down
-    , ((modm .|. controlMask, xK_l   ), spawn "xscreensaver-command -lock; sleep 1; xset dpms force off")
+    , ((modm .|. controlMask, xK_l   ), spawn "xscreensaver-command -lock; sleep 1; xset dpms force poff")
 
     -- launch XMonad app prompt
-    , ((modm,               xK_p     ), shellPrompt myXPConfig)
+    , ((modm .|. controlMask, xK_Return     ), shellPrompt myXPConfig)
 
+    -- control volume
+    , ((0, xF86XK_AudioMute), spawn "amixer set Master toggle")
+    , ((0, xF86XK_AudioRaiseVolume), spawn "amixer set Master 5%+")
+    , ((noModMask, xF86XK_AudioLowerVolume), spawn "amixer set Master 5%-")
+    
     -- control screen brightness
-    -- These are the codes the function keys generate on my Lenovo X1 Carbon gen6
     -- xbacklight is in the xorg-xbacklight package in Arch
-    -- , ((noModMask, xF86XK_MonBrightnessDown), spawn "xbacklight -dec 10")
-    -- , ((noModMask, xF86XK_MonBrightnessUp  ), spawn "xbacklight -inc 10")
+    , ((0, xF86XK_MonBrightnessDown), spawn "xbacklight -dec 10")
+    , ((0, xF86XK_MonBrightnessUp  ), spawn "xbacklight -inc 10")
 
     -- Mouse button pressing and holding. Note: xte is in arch package xautomation
     , ((modm              , xK_F1    ), spawn "xte 'usleep 500000' 'mouseclick 1'")  -- left mouse button click
@@ -261,7 +256,7 @@ myLayout = avoidStruts $
    simpleTabbed
    where
       -- default tiling algorithm partitions the screen into two panes
-      tiled   = Tall nmaster delta ratio
+      tiled = Tall nmaster delta ratio
 
       -- The default number of windows in the master pane
       nmaster = 1
@@ -400,7 +395,7 @@ help = unlines
    , "The modifier key is 'super'. Keybindings:"
    , ""
    , "-- launching and killing programs"
-   , "mod-Shift-Enter  Launch " ++ myTerminal
+   , "mod-Ctrl-Enter  Launch " ++ myTerminal
    , "mod-p            Launch shell prompt"
    -- , "mod-Shift-p      Launch gmrun"
    , "mod-Shift-c      Close/kill the focused window"
