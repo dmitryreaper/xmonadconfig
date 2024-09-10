@@ -177,6 +177,11 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- launch XMonad app prompt
     , ((modm .|. controlMask, xK_Return     ), shellPrompt myXPConfig)
 
+    --screenshot flameshot
+    , ((0, xK_Print), spawn "flameshot gui")
+    , ((modm,    xK_t), spawn "telegram-desktop")
+    , ((modm .|. controlMask,   xK_b), spawn "librewolf")
+
     -- control volume
     , ((0, xF86XK_AudioMute), spawn "amixer set Master toggle")
     , ((0, xF86XK_AudioRaiseVolume), spawn "amixer set Master 5%+")
